@@ -148,6 +148,14 @@ class SubmissionController extends Controller
     }
 
     /**
+     * Display the success page
+     */
+    public function success(): Response
+    {
+        return Inertia::render('Submissions/Success');
+    }
+
+    /**
      * Display the specified submission
      */
     public function show(Submission $submission): Response

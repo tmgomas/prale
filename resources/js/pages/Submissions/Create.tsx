@@ -1,6 +1,6 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -155,7 +155,7 @@ export default function Create({ districts, sports }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900">
             <Head title="New Submission / නව ඉදිරිපත් කිරීම" />
 
             <div className="container mx-auto py-8 px-4">
@@ -266,6 +266,6 @@ export default function Create({ districts, sports }: Props) {
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </div>
     );
 }
