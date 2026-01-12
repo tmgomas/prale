@@ -182,7 +182,7 @@ export default function Create({ districts, sports }: Props) {
                                     </div>
                                 ))}
                             </div>
-                            <div className="flex justify-between mt-2 text-sm">
+                            <div className="flex justify-between mt-2 text-sm hidden md:flex">
                                 <span>Location / ස්ථානය</span>
                                 <span>Officer / නිළධාරී</span>
                                 <span>Sports Data / ක්‍රීඩා දත්ත</span>

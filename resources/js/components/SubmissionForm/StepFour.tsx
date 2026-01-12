@@ -72,7 +72,7 @@ export default function StepFour({ formData, setFormData }: Props) {
                     </div>
 
                     <div className="pt-4 border-t">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col gap-2 items-start sm:flex-row sm:justify-between sm:items-center">
                             <Label className="text-lg font-semibold">Total Income / සමස්ත ආදායම:</Label>
                             <span className="text-2xl font-bold text-green-600">
                                 {formatCurrency(totalIncome)}
@@ -116,7 +116,7 @@ export default function StepFour({ formData, setFormData }: Props) {
                     </div>
 
                     <div className="pt-4 border-t">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col gap-2 items-start sm:flex-row sm:justify-between sm:items-center">
                             <Label className="text-lg font-semibold">Total Expenses / සමස්ත වියදම:</Label>
                             <span className="text-2xl font-bold text-red-600">
                                 {formatCurrency(totalExpense)}
@@ -137,7 +137,7 @@ export default function StepFour({ formData, setFormData }: Props) {
                         <span>Total Expenses / මුළු වියදම:</span>
                         <span className="font-medium">{formatCurrency(totalExpense)}</span>
                     </div>
-                    <div className="pt-2 border-t flex justify-between items-center">
+                    <div className="pt-2 border-t flex flex-col gap-2 items-start sm:flex-row sm:justify-between sm:items-center">
                         <Label className="text-xl font-bold">Balance / ඉතිරිය / (හිඟය):</Label>
                         <span className={`text-3xl font-bold ${totalIncome - totalExpense >= 0 ? 'text-primary' : 'text-destructive'}`}>
                             {formatCurrency(totalIncome - totalExpense)}
