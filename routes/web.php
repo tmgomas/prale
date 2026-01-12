@@ -10,6 +10,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Public submission routes
+Route::get('submissions/create', [\App\Http\Controllers\SubmissionController::class, 'create'])->name('submissions.create');
+Route::post('submissions', [\App\Http\Controllers\SubmissionController::class, 'store'])->name('submissions.store');
+Route::get('submissions/success', [\App\Http\Controllers\SubmissionController::class, 'success'])->name('submissions.success');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
@@ -19,10 +24,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('submissions', \App\Http\Controllers\SubmissionController::class)
         ->except(['create', 'store']);
 });
-
-// Public submission routes
-Route::get('submissions/create', [\App\Http\Controllers\SubmissionController::class, 'create'])->name('submissions.create');
-Route::post('submissions', [\App\Http\Controllers\SubmissionController::class, 'store'])->name('submissions.store');
-Route::get('submissions/success', [\App\Http\Controllers\SubmissionController::class, 'success'])->name('submissions.success');
 
 require __DIR__ . '/settings.php';
