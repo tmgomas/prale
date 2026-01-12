@@ -297,13 +297,7 @@ export default function Edit({ submission, districts, sports }: Props) {
                             <div className="flex gap-2">
                                 {currentStep === 4 && (
                                     <>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => handleSubmit('draft')}
-                                        >
-                                            Save as Draft / කෙටුම්පතක් ලෙස සුරකින්න
-                                        </Button>
+
                                         <Button
                                             type="button"
                                             onClick={() => handleSubmit('submitted')}

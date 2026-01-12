@@ -179,72 +179,78 @@ export default function StepThree({ formData, setFormData, sports }: Props) {
                     </div>
 
                     {/* Mobile View */}
-                    <div className="md:hidden space-y-4">
+                    <div className="md:hidden space-y-3">
                         {formData.team_sports.map((row: any, index: number) => {
                             const sport = sports.find(s => s.id === row.sport_id);
                             return (
-                                <div key={index} className="border rounded-lg p-4 space-y-4 bg-card">
-                                    <div className="font-semibold border-b pb-2">
+                                <div key={index} className="border rounded-lg p-3 space-y-3 bg-card">
+                                    <div className="font-semibold border-b pb-2 text-sm">
                                         {sport?.code}. {sport?.name_si} / {sport?.name_en}
                                     </div>
 
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <Label>Date / දිනය</Label>
+                                    <div className="grid grid-cols-1 gap-1">
+                                        <Label className="text-xs">Date / දිනය</Label>
                                         <Input
                                             type="date"
                                             value={row.event_date}
                                             onChange={(e) => updateTeamSport(index, 'event_date', e.target.value)}
+                                            className="h-9"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <Label>Venue / ස්ථානය</Label>
+                                    <div className="grid grid-cols-1 gap-1">
+                                        <Label className="text-xs">Venue / ස්ථානය</Label>
                                         <Input
                                             type="text"
                                             value={row.venue}
                                             onChange={(e) => updateTeamSport(index, 'venue', e.target.value)}
                                             placeholder="Venue"
+                                            className="h-9"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs">Teams (Male) <br /> කණ්ඩායම් (පිරිමි)</Label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px] leading-tight block">Teams (Male) <br /> කණ්ඩායම් (පිරිමි)</Label>
                                             <Input
                                                 type="number"
                                                 min="0"
                                                 value={row.teams_male}
                                                 onChange={(e) => updateTeamSport(index, 'teams_male', parseInt(e.target.value) || 0)}
+                                                className="h-9"
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs">Teams (Female) <br /> කණ්ඩායම් (ගැහැණු)</Label>
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px] leading-tight block">Teams (Female) <br /> කණ්ඩායම් (ගැහැණු)</Label>
                                             <Input
                                                 type="number"
                                                 min="0"
                                                 value={row.teams_female}
                                                 onChange={(e) => updateTeamSport(index, 'teams_female', parseInt(e.target.value) || 0)}
+                                                className="h-9"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs">Players (Male) <br /> ක්‍රීඩකයින් (පිරිමි)</Label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px] leading-tight block">Players (Male) <br /> ක්‍රීඩකයින් (පිරිමි)</Label>
                                             <Input
                                                 type="number"
                                                 min="0"
                                                 value={row.players_male}
                                                 onChange={(e) => updateTeamSport(index, 'players_male', parseInt(e.target.value) || 0)}
+                                                className="h-9"
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs">Players (Female) <br /> ක්‍රීඩකයින් (ගැහැණු)</Label>
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px] leading-tight block">Players (Female) <br /> ක්‍රීඩකයින් (ගැහැණු)</Label>
                                             <Input
                                                 type="number"
                                                 min="0"
                                                 value={row.players_female}
                                                 onChange={(e) => updateTeamSport(index, 'players_female', parseInt(e.target.value) || 0)}
+                                                className="h-9"
                                             />
                                         </div>
                                     </div>
@@ -263,10 +269,7 @@ export default function StepThree({ formData, setFormData, sports }: Props) {
                             <CardTitle>Swimming Progress / පිහිණුම් ප්‍රගතිය</CardTitle>
                             <CardDescription>Enter details for swimming events / පිහිණුම් ඉසව් සඳහා තොරතුරු ඇතුළත් කරන්න</CardDescription>
                         </div>
-                        <Button type="button" onClick={addSwimmingRow} size="sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Row / පේළියක් එකතු කරන්න
-                        </Button>
+
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -367,78 +370,84 @@ export default function StepThree({ formData, setFormData, sports }: Props) {
                             </div>
 
                             {/* Mobile View */}
-                            <div className="md:hidden space-y-4">
+                            <div className="md:hidden space-y-3">
                                 {formData.swimming.map((row: any, index: number) => (
-                                    <div key={index} className="border rounded-lg p-4 space-y-4 bg-card relative">
+                                    <div key={index} className="border rounded-lg p-3 space-y-3 bg-card relative">
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => removeSwimmingRow(index)}
-                                            className="absolute right-2 top-2"
+                                            className="absolute right-2 top-2 h-6 w-6 p-0"
                                         >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                            <Trash2 className="w-3 h-3 text-destructive" />
                                         </Button>
 
-                                        <div className="pr-10 font-medium">Swimming Entry #{index + 1}</div>
+                                        <div className="pr-10 font-medium text-sm">Swimming Entry #{index + 1}</div>
 
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <Label>Date / දිනය</Label>
+                                        <div className="grid grid-cols-1 gap-1">
+                                            <Label className="text-xs">Date / දිනය</Label>
                                             <Input
                                                 type="date"
                                                 value={row.event_date}
                                                 onChange={(e) => updateSwimming(index, 'event_date', e.target.value)}
+                                                className="h-9"
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <Label>Venue / ස්ථානය</Label>
+                                        <div className="grid grid-cols-1 gap-1">
+                                            <Label className="text-xs">Venue / ස්ථානය</Label>
                                             <Input
                                                 type="text"
                                                 value={row.venue}
                                                 onChange={(e) => updateSwimming(index, 'venue', e.target.value)}
                                                 placeholder="Venue"
+                                                className="h-9"
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Events (Male) <br /> පැවැත්වූ ඉසව් (පිරිමි)</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Events (Male) <br /> පැවැත්වූ ඉසව් (පිරිමි)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.teams_male}
                                                     onChange={(e) => updateSwimming(index, 'teams_male', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Events (Female) <br /> පැවැත්වූ ඉසව් (ගැහැණු)</Label>
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Events (Female) <br /> පැවැත්වූ ඉසව් (ගැහැණු)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.teams_female}
                                                     onChange={(e) => updateSwimming(index, 'teams_female', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Players (Male) <br /> ක්‍රීඩකයින් (පිරිමි)</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Players (Male) <br /> ක්‍රීඩකයින් (පිරිමි)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.players_male}
                                                     onChange={(e) => updateSwimming(index, 'players_male', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Players (Female) <br /> ක්‍රීඩකයින් (ගැහැණු)</Label>
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Players (Female) <br /> ක්‍රීඩකයින් (ගැහැණු)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.players_female}
                                                     onChange={(e) => updateSwimming(index, 'players_female', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
                                         </div>
@@ -458,10 +467,7 @@ export default function StepThree({ formData, setFormData, sports }: Props) {
                             <CardTitle>Track & Field Progress / මළල ක්‍රීඩා හා අවසන් තරඟ ප්‍රගතිය</CardTitle>
                             <CardDescription>Enter details for Track & Field events / මළල ක්‍රීඩා ඉසව් සඳහා තොරතුරු ඇතුළත් කරන්න</CardDescription>
                         </div>
-                        <Button type="button" onClick={addTrackFieldRow} size="sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Row / පේළියක් එකතු කරන්න
-                        </Button>
+
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -562,78 +568,84 @@ export default function StepThree({ formData, setFormData, sports }: Props) {
                             </div>
 
                             {/* Mobile View */}
-                            <div className="md:hidden space-y-4">
+                            <div className="md:hidden space-y-3">
                                 {formData.track_field.map((row: any, index: number) => (
-                                    <div key={index} className="border rounded-lg p-4 space-y-4 bg-card relative">
+                                    <div key={index} className="border rounded-lg p-3 space-y-3 bg-card relative">
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => removeTrackFieldRow(index)}
-                                            className="absolute right-2 top-2"
+                                            className="absolute right-2 top-2 h-6 w-6 p-0"
                                         >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                            <Trash2 className="w-3 h-3 text-destructive" />
                                         </Button>
 
-                                        <div className="pr-10 font-medium">Track & Field Entry #{index + 1}</div>
+                                        <div className="pr-10 font-medium text-sm">Track & Field Entry #{index + 1}</div>
 
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <Label>Date / දිනය</Label>
+                                        <div className="grid grid-cols-1 gap-1">
+                                            <Label className="text-xs">Date / දිනය</Label>
                                             <Input
                                                 type="date"
                                                 value={row.event_date}
                                                 onChange={(e) => updateTrackField(index, 'event_date', e.target.value)}
+                                                className="h-9"
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <Label>Venue / ස්ථානය</Label>
+                                        <div className="grid grid-cols-1 gap-1">
+                                            <Label className="text-xs">Venue / ස්ථානය</Label>
                                             <Input
                                                 type="text"
                                                 value={row.venue}
                                                 onChange={(e) => updateTrackField(index, 'venue', e.target.value)}
                                                 placeholder="Venue"
+                                                className="h-9"
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Events (Male) <br /> පැවැත්වූ ඉසව් (පිරිමි)</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Events (Male) <br /> පැවැත්වූ ඉසව් (පිරිමි)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.teams_male}
                                                     onChange={(e) => updateTrackField(index, 'teams_male', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Events (Female) <br /> පැවැත්වූ ඉසව් (ගැහැණු)</Label>
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Events (Female) <br /> පැවැත්වූ ඉසව් (ගැහැණු)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.teams_female}
                                                     onChange={(e) => updateTrackField(index, 'teams_female', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Players (Male) <br /> ක්‍රීඩකයින් (පිරිමි)</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Players (Male) <br /> ක්‍රීඩකයින් (පිරිමි)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.players_male}
                                                     onChange={(e) => updateTrackField(index, 'players_male', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Players (Female) <br /> ක්‍රීඩකයින් (ගැහැණු)</Label>
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px] leading-tight block">Players (Female) <br /> ක්‍රීඩකයින් (ගැහැණු)</Label>
                                                 <Input
                                                     type="number"
                                                     min="0"
                                                     value={row.players_female}
                                                     onChange={(e) => updateTrackField(index, 'players_female', parseInt(e.target.value) || 0)}
+                                                    className="h-9"
                                                 />
                                             </div>
                                         </div>
