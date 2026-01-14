@@ -19,15 +19,55 @@ class SubmissionController extends Controller
     /**
      * Display a listing of submissions
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $submissions = Submission::with(['district', 'user'])
-            ->latest()
-            ->paginate(15);
+        $query = Submission::with(['district', 'user'])
+            ->latest();
+
+        if ($request->filled('district_id')) {
+            $query->where('district_id', $request->input('district_id'));
+        }
+
+        if ($request->filled('division')) {
+            $query->where('division', 'like', '%' . $request->input('division') . '%');
+        }
+
+        $submissions = $query->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('Submissions/Index', [
             'submissions' => $submissions,
+            'filters' => $request->only(['district_id', 'division']),
         ]);
+    }
+
+    /**
+     * Export submissions as PDF
+     */
+    public function export(Request $request)
+    {
+        $query = Submission::with([
+            'district',
+            'teamSportsData.sport',
+            'swimmingData',
+            'trackFieldData',
+            'financialData'
+        ])->latest();
+
+        if ($request->filled('district_id')) {
+            $query->where('district_id', $request->input('district_id'));
+        }
+
+        if ($request->filled('division')) {
+            $query->where('division', 'like', '%' . $request->input('division') . '%');
+        }
+
+        $submissions = $query->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.submissions', ['submissions' => $submissions]);
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download('submissions-export-' . now()->format('Y-m-d-His') . '.pdf');
     }
 
     /**

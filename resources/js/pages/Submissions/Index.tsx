@@ -4,7 +4,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, FileDown } from 'lucide-react';
 
 interface District {
     id: number;
@@ -74,15 +74,29 @@ export default function Index({ submissions }: Props) {
                     <div>
                         <h1 className="text-3xl font-bold">ඉදිරිපත් කිරීම්</h1>
                         <p className="text-muted-foreground mt-1">
-                            35වන ජාතික යෞවන ක්‍රීඩා උළෙල 2525 - දත්ත එකතු කිරීම
+                            35වන ජාතික යෞවන ක්‍රීඩා උළෙල 2025 - දත්ත එකතු කිරීම
                         </p>
                     </div>
-                    <Link href="/submissions/create">
-                        <Button>
-                            <Plus className="w-4 h-4 mr-2" />
-                            නව ඉදිරිපත් කිරීමක්
-                        </Button>
-                    </Link>
+                    <div className="flex gap-2">
+                        {submissions.data.length > 0 && (
+                            <a
+                                href={`/submissions/export${window.location.search}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <Button variant="outline">
+                                    <FileDown className="w-4 h-4 mr-2" />
+                                    Download PDF
+                                </Button>
+                            </a>
+                        )}
+                        <Link href="/submissions/create">
+                            <Button>
+                                <Plus className="w-4 h-4 mr-2" />
+                                නව ඉදිරිපත් කිරීමක්
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
                 {submissions.data.length === 0 ? (
