@@ -13,7 +13,8 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { FileText, Map, PieChart } from 'lucide-react';
+import { FileText, Map, PieChart, Sparkles } from 'lucide-react';
+import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -42,6 +43,98 @@ interface DashboardProps {
         divisions_active: number;
     };
     district_stats: DistrictStat[];
+}
+
+function DivisionItem({ district, division }: { district: DistrictStat; division: DivisionStat }) {
+    const [analyzing, setAnalyzing] = React.useState(false);
+    const [analysis, setAnalysis] = React.useState<string | null>(null);
+    const [error, setError] = React.useState<string | null>(null);
+
+    const handleAnalyze = async () => {
+        setAnalyzing(true);
+        setError(null);
+        setAnalysis(null);
+
+        try {
+            const response = await fetch('/api/division-analysis/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    district_id: district.id,
+                    division: division.division,
+                    _token: (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setAnalysis(data.analysis);
+            } else {
+                setError(data.error || 'Failed to generate analysis');
+            }
+        } catch (err) {
+            console.error('Analysis error:', err);
+            setError('Network error. Please check if the server is running.');
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    return (
+        <div className="border rounded-md p-3 space-y-2">
+            <div className="flex items-center justify-between">
+                <Link
+                    href={`/submissions?district_id=${district.id}&division=${encodeURIComponent(division.division)}`}
+                    className="text-sm hover:underline text-blue-600 dark:text-blue-400 flex-1"
+                >
+                    {division.division || 'Unknown'}
+                </Link>
+                <span className="bg-secondary text-secondary-foreground rounded-md px-2 py-1 text-xs font-bold">
+                    {division.count}
+                </span>
+            </div>
+
+            <button
+                onClick={handleAnalyze}
+                disabled={analyzing}
+                className="w-full text-xs bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded px-2 py-1.5 flex items-center justify-center gap-1"
+            >
+                {analyzing ? (
+                    <>
+                        <span className="animate-spin">⟳</span>
+                        Analyzing...
+                    </>
+                ) : (
+                    <>
+                        <Sparkles className="w-3 h-3" />
+                        AI Analysis
+                    </>
+                )}
+            </button>
+
+            {analysis && (
+                <div className="bg-muted rounded p-2 text-xs space-y-1">
+                    <div className="font-semibold text-primary flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        AI Insights:
+                    </div>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{analysis}</p>
+                </div>
+            )}
+
+            {error && (
+                <div className="bg-destructive/10 text-destructive rounded p-2 text-xs">
+                    {error}
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default function Dashboard({ stats, district_stats }: DashboardProps) {
@@ -122,10 +215,10 @@ export default function Dashboard({ stats, district_stats }: DashboardProps) {
                                                             className="bg-primary h-full"
                                                             style={{
                                                                 width: `${stats.total_submissions > 0
-                                                                        ? (district.submissions_count /
-                                                                            stats.total_submissions) *
-                                                                        100
-                                                                        : 0
+                                                                    ? (district.submissions_count /
+                                                                        stats.total_submissions) *
+                                                                    100
+                                                                    : 0
                                                                     }%`,
                                                             }}
                                                         />
@@ -160,18 +253,11 @@ export default function Dashboard({ stats, district_stats }: DashboardProps) {
                                                             ) : (
                                                                 <div className="space-y-3">
                                                                     {district.division_breakdown.map((div, i) => (
-                                                                        <Link
+                                                                        <DivisionItem
                                                                             key={i}
-                                                                            href={`/submissions?district_id=${district.id}&division=${encodeURIComponent(div.division)}`}
-                                                                            className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors cursor-pointer group"
-                                                                        >
-                                                                            <span className="text-sm group-hover:underline text-blue-600 dark:text-blue-400">
-                                                                                {div.division || 'Unknown'}
-                                                                            </span>
-                                                                            <span className="bg-secondary text-secondary-foreground rounded-md px-2 py-1 text-xs font-bold">
-                                                                                {div.count}
-                                                                            </span>
-                                                                        </Link>
+                                                                            district={district}
+                                                                            division={div}
+                                                                        />
                                                                     ))}
                                                                 </div>
                                                             )}

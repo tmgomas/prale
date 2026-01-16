@@ -22,6 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Protected submission routes (index, show, edit, update, destroy)
     Route::resource('submissions', \App\Http\Controllers\SubmissionController::class)
         ->except(['create', 'store']);
+
+    // Reports
+    Route::get('reports/sports-matrix', [\App\Http\Controllers\ReportController::class, 'sportsMatrix'])->name('reports.sports-matrix');
 });
 
 require __DIR__ . '/settings.php';
