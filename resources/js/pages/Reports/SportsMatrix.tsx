@@ -52,21 +52,17 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
         window.print();
     };
 
-    const sortedDivisions = React.useMemo(() => {
+    const { normalDivisions, districtLevelKey } = React.useMemo(() => {
         const divisions = Object.keys(matrixData);
-        const districtLevelKey = divisions.find(d =>
+        const districtKey = divisions.find(d =>
             d.toLowerCase().includes('district level') ||
             d.includes('දිස්ත්රික්') ||
             d.includes('දිස්ත්‍රික්')
         );
 
-        const otherDivisions = divisions.filter(d => d !== districtLevelKey).sort();
+        const normal = divisions.filter(d => d !== districtKey).sort();
 
-        if (districtLevelKey) {
-            return [...otherDivisions, districtLevelKey];
-        }
-
-        return otherDivisions;
+        return { normalDivisions: normal, districtLevelKey: districtKey };
     }, [matrixData]);
 
     const sportTotals = React.useMemo(() => {
@@ -74,14 +70,14 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
 
         sports.forEach(sport => {
             let sum = 0;
-            Object.values(matrixData).forEach(divisionData => {
-                sum += (divisionData[sport.id] || 0);
+            normalDivisions.forEach(division => {
+                sum += (matrixData[division]?.[sport.id] || 0);
             });
             totals[sport.id] = sum;
         });
 
         return totals;
-    }, [matrixData, sports]);
+    }, [matrixData, sports, normalDivisions]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -96,24 +92,32 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                     
                     body {
                         visibility: hidden;
-                        overflow: hidden; /* Prevent double scrollbars */
+                        overflow: visible !important;
                     }
 
                     #printable-area {
                         visibility: visible;
-                        position: fixed;
+                        position: absolute;
                         top: 0;
                         left: 0;
-                        width: 100vw;
-                        height: 100vh;
-                        padding: 20px;
+                        width: 100%;
+                        margin: 0;
+                        padding: 0;
                         background: white;
                         z-index: 9999;
-                        overflow: visible;
                     }
 
                     #printable-area * {
                         visibility: visible;
+                    }
+                    
+                    thead {
+                        display: table-header-group;
+                    }
+
+                    tr {
+                        break-inside: avoid;
+                        page-break-inside: avoid;
                     }
 
                     /* Hide scrollbars during print */
@@ -241,7 +245,8 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {sortedDivisions.length === 0 ? (
+
+                                            {normalDivisions.length === 0 && !districtLevelKey ? (
                                                 <tr>
                                                     <td
                                                         colSpan={sports.length + 1}
@@ -252,46 +257,76 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                sortedDivisions.map((division) => (
-                                                    <tr key={division} className="border-b transition-colors hover:bg-primary/5 group print:break-inside-avoid">
-                                                        <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent">
-                                                            {division}
+                                                <>
+                                                    {normalDivisions.map((division) => (
+                                                        <tr key={division} className="border-b transition-colors hover:bg-primary/5 group print:break-inside-avoid">
+                                                            <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent">
+                                                                {division}
+                                                            </td>
+                                                            {sports.map((sport) => {
+                                                                const count = matrixData[division]?.[sport.id] || 0;
+                                                                return (
+                                                                    <td
+                                                                        key={sport.id}
+                                                                        className="p-0 border-r text-center"
+                                                                    >
+                                                                        <div className="flex items-center justify-center h-12 w-full text-sm">
+                                                                            {count > 0 ? (
+                                                                                <span className="font-medium text-green-600 print:text-black">
+                                                                                    {count}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="text-muted-foreground/30 print:hidden">-</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    ))}
+
+                                                    {/* Total Row */}
+                                                    <tr className="bg-muted/50 border-t-2 border-primary/20 font-bold print:border-black print:bg-gray-200 border-b-2" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
+                                                        <td className="sticky left-0 z-10 bg-muted/50 p-4 border-r print:bg-gray-200">
+                                                            Total
                                                         </td>
-                                                        {sports.map((sport) => {
-                                                            const count = matrixData[division]?.[sport.id] || 0;
-                                                            return (
-                                                                <td
-                                                                    key={sport.id}
-                                                                    className="p-0 border-r text-center"
-                                                                >
-                                                                    <div className="flex items-center justify-center h-12 w-full text-sm">
-                                                                        {count > 0 ? (
-                                                                            <span className="font-medium text-green-600 print:text-black">
-                                                                                {count}
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className="text-muted-foreground/30 print:hidden">-</span>
-                                                                        )}
-                                                                    </div>
-                                                                </td>
-                                                            );
-                                                        })}
+                                                        {sports.map((sport) => (
+                                                            <td key={sport.id} className="p-3 text-center border-r">
+                                                                {sportTotals[sport.id] > 0 ? sportTotals[sport.id] : '-'}
+                                                            </td>
+                                                        ))}
                                                     </tr>
-                                                ))
+
+                                                    {/* District Level Row */}
+                                                    {districtLevelKey && (
+                                                        <tr className="border-b transition-colors hover:bg-primary/5 group print:break-inside-avoid bg-yellow-50/50 dark:bg-yellow-900/10 print:bg-transparent">
+                                                            <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent">
+                                                                {districtLevelKey}
+                                                            </td>
+                                                            {sports.map((sport) => {
+                                                                const count = matrixData[districtLevelKey]?.[sport.id] || 0;
+                                                                return (
+                                                                    <td
+                                                                        key={sport.id}
+                                                                        className="p-0 border-r text-center"
+                                                                    >
+                                                                        <div className="flex items-center justify-center h-12 w-full text-sm">
+                                                                            {count > 0 ? (
+                                                                                <span className="font-medium text-green-600 print:text-black">
+                                                                                    {count}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="text-muted-foreground/30 print:hidden">-</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    )}
+                                                </>
                                             )}
                                         </tbody>
-                                        <tfoot>
-                                            <tr className="bg-muted/50 border-t-2 border-primary/20 font-bold print:border-black print:bg-gray-200" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
-                                                <td className="sticky left-0 z-10 bg-muted/50 p-4 border-r print:bg-gray-200">
-                                                    Total
-                                                </td>
-                                                {sports.map((sport) => (
-                                                    <td key={sport.id} className="p-3 text-center border-r">
-                                                        {sportTotals[sport.id] > 0 ? sportTotals[sport.id] : '-'}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        </tfoot>
                                     </table>
                                 </div>
                             </CardContent>
