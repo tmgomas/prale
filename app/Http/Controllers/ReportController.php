@@ -73,9 +73,18 @@ class ReportController extends Controller
         $matrixData = [];
 
         // Fetch submissions for the selected district with their team sports data
-        $submissions = Submission::with(['teamSportsData', 'swimmingData', 'trackFieldData'])
+        // Fetch the latest submission ID for each division in the selected district
+        $latestSubmissionIds = Submission::query()
+            ->selectRaw('MAX(id) as id')
             ->where('district_id', $districtId)
-            ->where('status', '!=', 'draft') // Optional: Exclude drafts if needed
+            ->where('status', '!=', 'draft') // Exclude drafts
+            ->groupBy('division')
+            ->get()
+            ->pluck('id');
+
+        // Fetch full submission data for the identified latest submissions
+        $submissions = Submission::with(['teamSportsData', 'swimmingData', 'trackFieldData'])
+            ->whereIn('id', $latestSubmissionIds)
             ->get();
 
         foreach ($submissions as $submission) {
