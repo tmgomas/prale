@@ -23,7 +23,12 @@ interface Sport {
 
 interface MatrixData {
     [divisionName: string]: {
-        [sportId: number]: number;
+        [sportId: number]: {
+            men_teams: number;
+            men_participants: number;
+            women_teams: number;
+            women_participants: number;
+        };
     };
 }
 
@@ -66,14 +71,34 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
     }, [matrixData]);
 
     const sportTotals = React.useMemo(() => {
-        const totals: { [key: number]: number } = {};
+        const totals: {
+            [key: number]: {
+                men_teams: number;
+                men_participants: number;
+                women_teams: number;
+                women_participants: number;
+            }
+        } = {};
 
         sports.forEach(sport => {
-            let sum = 0;
+            let sumMenTeams = 0;
+            let sumMenParticipants = 0;
+            let sumWomenTeams = 0;
+            let sumWomenParticipants = 0;
+
             normalDivisions.forEach(division => {
-                sum += (matrixData[division]?.[sport.id] || 0);
+                const data = matrixData[division]?.[sport.id];
+                sumMenTeams += (data?.men_teams || 0);
+                sumMenParticipants += (data?.men_participants || 0);
+                sumWomenTeams += (data?.women_teams || 0);
+                sumWomenParticipants += (data?.women_participants || 0);
             });
-            totals[sport.id] = sum;
+            totals[sport.id] = {
+                men_teams: sumMenTeams,
+                men_participants: sumMenParticipants,
+                women_teams: sumWomenTeams,
+                women_participants: sumWomenParticipants
+            };
         });
 
         return totals;
@@ -87,30 +112,43 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                 @media print {
                     @page {
                         size: landscape;
-                        margin: 10mm;
+                        margin: 5mm; 
                     }
                     
                     body {
                         visibility: hidden;
-                        overflow: visible !important;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    /* Reset positioning of potential parents to ensure absolute positioning works */
+                    body * {
+                        visibility: hidden;
                     }
 
                     #printable-area {
                         visibility: visible;
-                        position: absolute;
+                        position: fixed; /* Fixed is more reliable for breaking out of containers in print previews */
                         top: 0;
                         left: 0;
-                        width: 100%;
+                        width: 100vw;
+                        height: 100vh;
                         margin: 0;
                         padding: 0;
                         background: white;
                         z-index: 9999;
+                        overflow: visible;
                     }
 
                     #printable-area * {
                         visibility: visible;
                     }
                     
+                    /* Ensure table headers are static in print to avoid alignment issues */
+                    thead th {
+                        position: static !important;
+                    }
+
                     thead {
                         display: table-header-group;
                     }
@@ -201,12 +239,12 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm shadow-green-200 print:bg-green-500 print:shadow-none" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }} />
-                                            <span className="text-xs font-medium text-muted-foreground">Participated</span>
+                                            <div className="w-3 h-3 rounded-full bg-blue-500/20 border border-blue-600 print:bg-gray-200" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }} />
+                                            <span className="text-xs font-medium text-muted-foreground">Men (Teams / Participants)</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-muted border print:bg-gray-200" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }} />
-                                            <span className="text-xs font-medium text-muted-foreground">Not Participating</span>
+                                            <div className="w-3 h-3 rounded-full bg-pink-500/20 border border-pink-600 print:bg-gray-200" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }} />
+                                            <span className="text-xs font-medium text-muted-foreground">Women (Teams / Participants)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -216,13 +254,14 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                                     <table className="w-full border-collapse">
                                         <thead>
                                             <tr className="bg-muted/30 border-b print:bg-gray-100" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
-                                                <th className="sticky left-0 z-20 bg-background border-r p-4 text-left font-bold text-sm min-w-[200px] print:static print:bg-transparent">
+                                                <th rowSpan={3} className="sticky left-0 z-20 bg-background border-r p-4 text-left font-bold text-sm min-w-[200px] print:static print:bg-transparent print:p-1 print:min-w-[50px] print:text-xs">
                                                     Division Name
                                                 </th>
                                                 {sports.map((sport) => (
                                                     <th
                                                         key={sport.id}
-                                                        className="p-3 text-center border-r font-medium text-xs min-w-[100px] hover:bg-muted/50 transition-colors print:min-w-0"
+                                                        colSpan={4}
+                                                        className="p-3 text-center border-r font-medium text-xs min-w-[100px] hover:bg-muted/50 transition-colors print:min-w-0 print:p-1"
                                                     >
                                                         <TooltipProvider>
                                                             <Tooltip>
@@ -243,13 +282,35 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                                                     </th>
                                                 ))}
                                             </tr>
+                                            <tr className="bg-muted/30 border-b print:bg-gray-100" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
+                                                {sports.map((sport) => (
+                                                    <React.Fragment key={sport.id}>
+                                                        <th colSpan={2} className="p-1 text-center border-r text-[10px] font-semibold text-blue-700 bg-blue-50/20 print:text-[8px] print:p-0 min-w-[80px]">
+                                                            Men
+                                                        </th>
+                                                        <th colSpan={2} className="p-1 text-center border-r text-[10px] font-semibold text-pink-700 bg-pink-50/20 print:text-[8px] print:p-0 min-w-[80px]">
+                                                            Women
+                                                        </th>
+                                                    </React.Fragment>
+                                                ))}
+                                            </tr>
+                                            <tr className="bg-muted/30 border-b print:bg-gray-100" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
+                                                {sports.map((sport) => (
+                                                    <React.Fragment key={sport.id}>
+                                                        <th className="p-1 text-center border-r text-[9px] text-muted-foreground bg-muted/10 print:text-[8px] print:p-0 min-w-[40px]">Team</th>
+                                                        <th className="p-1 text-center border-r text-[9px] text-muted-foreground bg-muted/10 print:text-[8px] print:p-0 min-w-[40px]">Part.</th>
+                                                        <th className="p-1 text-center border-r text-[9px] text-muted-foreground bg-muted/10 print:text-[8px] print:p-0 min-w-[40px]">Team</th>
+                                                        <th className="p-1 text-center border-r text-[9px] text-muted-foreground bg-muted/10 print:text-[8px] print:p-0 min-w-[40px]">Part.</th>
+                                                    </React.Fragment>
+                                                ))}
+                                            </tr>
                                         </thead>
                                         <tbody>
 
                                             {normalDivisions.length === 0 && !districtLevelKey ? (
                                                 <tr>
                                                     <td
-                                                        colSpan={sports.length + 1}
+                                                        colSpan={sports.length * 4 + 1}
                                                         className="p-12 text-center text-muted-foreground bg-muted/10 print:bg-transparent"
                                                     >
                                                         <Info className="w-8 h-8 mx-auto mb-3 opacity-20" />
@@ -260,26 +321,47 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                                                 <>
                                                     {normalDivisions.map((division) => (
                                                         <tr key={division} className="border-b transition-colors hover:bg-primary/5 group print:break-inside-avoid">
-                                                            <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent">
+                                                            <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent print:p-1 print:text-xs">
                                                                 {division}
                                                             </td>
                                                             {sports.map((sport) => {
-                                                                const count = matrixData[division]?.[sport.id] || 0;
+                                                                const data = matrixData[division]?.[sport.id];
+
                                                                 return (
-                                                                    <td
-                                                                        key={sport.id}
-                                                                        className="p-0 border-r text-center"
-                                                                    >
-                                                                        <div className="flex items-center justify-center h-12 w-full text-sm">
-                                                                            {count > 0 ? (
-                                                                                <span className="font-medium text-green-600 print:text-black">
-                                                                                    {count}
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span className="text-muted-foreground/30 print:hidden">-</span>
-                                                                            )}
-                                                                        </div>
-                                                                    </td>
+                                                                    <React.Fragment key={sport.id}>
+                                                                        {/* Men Team */}
+                                                                        <td className="p-0 border-r text-center bg-blue-50/5">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.men_teams ? (
+                                                                                    <span className="font-medium text-blue-600 print:text-black">{data.men_teams}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                        {/* Men Participant */}
+                                                                        <td className="p-0 border-r text-center bg-blue-50/10">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.men_participants ? (
+                                                                                    <span className="font-bold text-blue-700 print:text-black">{data.men_participants}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                        {/* Women Team */}
+                                                                        <td className="p-0 border-r text-center bg-pink-50/5">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.women_teams ? (
+                                                                                    <span className="font-medium text-pink-600 print:text-black">{data.women_teams}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                        {/* Women Participant */}
+                                                                        <td className="p-0 border-r text-center bg-pink-50/10">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.women_participants ? (
+                                                                                    <span className="font-bold text-pink-700 print:text-black">{data.women_participants}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                    </React.Fragment>
                                                                 );
                                                             })}
                                                         </tr>
@@ -287,39 +369,71 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
 
                                                     {/* Total Row */}
                                                     <tr className="bg-muted/50 border-t-2 border-primary/20 font-bold print:border-black print:bg-gray-200 border-b-2" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
-                                                        <td className="sticky left-0 z-10 bg-muted/50 p-4 border-r print:bg-gray-200">
+                                                        <td className="sticky left-0 z-10 bg-muted/50 p-4 border-r print:bg-gray-200 print:p-1 print:text-xs">
                                                             Total
                                                         </td>
                                                         {sports.map((sport) => (
-                                                            <td key={sport.id} className="p-3 text-center border-r">
-                                                                {sportTotals[sport.id] > 0 ? sportTotals[sport.id] : '-'}
-                                                            </td>
+                                                            <React.Fragment key={sport.id}>
+                                                                <td className="p-2 text-center border-r print:p-1 print:text-[8px] bg-blue-50/20 text-xs font-medium text-blue-600">
+                                                                    {sportTotals[sport.id].men_teams || '-'}
+                                                                </td>
+                                                                <td className="p-2 text-center border-r print:p-1 print:text-[8px] bg-blue-50/30 text-xs font-bold text-blue-800">
+                                                                    {sportTotals[sport.id].men_participants || '-'}
+                                                                </td>
+                                                                <td className="p-2 text-center border-r print:p-1 print:text-[8px] bg-pink-50/20 text-xs font-medium text-pink-600">
+                                                                    {sportTotals[sport.id].women_teams || '-'}
+                                                                </td>
+                                                                <td className="p-2 text-center border-r print:p-1 print:text-[8px] bg-pink-50/30 text-xs font-bold text-pink-800">
+                                                                    {sportTotals[sport.id].women_participants || '-'}
+                                                                </td>
+                                                            </React.Fragment>
                                                         ))}
                                                     </tr>
 
                                                     {/* District Level Row */}
                                                     {districtLevelKey && (
                                                         <tr className="border-b transition-colors hover:bg-primary/5 group print:break-inside-avoid bg-yellow-50/50 dark:bg-yellow-900/10 print:bg-transparent">
-                                                            <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent">
+                                                            <td className="sticky left-0 z-10 bg-background border-r p-4 font-semibold text-sm group-hover:bg-transparent print:static print:bg-transparent print:p-1 print:text-xs">
                                                                 {districtLevelKey}
                                                             </td>
                                                             {sports.map((sport) => {
-                                                                const count = matrixData[districtLevelKey]?.[sport.id] || 0;
+                                                                const data = matrixData[districtLevelKey]?.[sport.id];
+
                                                                 return (
-                                                                    <td
-                                                                        key={sport.id}
-                                                                        className="p-0 border-r text-center"
-                                                                    >
-                                                                        <div className="flex items-center justify-center h-12 w-full text-sm">
-                                                                            {count > 0 ? (
-                                                                                <span className="font-medium text-green-600 print:text-black">
-                                                                                    {count}
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span className="text-muted-foreground/30 print:hidden">-</span>
-                                                                            )}
-                                                                        </div>
-                                                                    </td>
+                                                                    <React.Fragment key={sport.id}>
+                                                                        {/* Men Team */}
+                                                                        <td className="p-0 border-r text-center bg-blue-50/5">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.men_teams ? (
+                                                                                    <span className="font-medium text-blue-600 print:text-black">{data.men_teams}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                        {/* Men Participant */}
+                                                                        <td className="p-0 border-r text-center bg-blue-50/10">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.men_participants ? (
+                                                                                    <span className="font-bold text-blue-700 print:text-black">{data.men_participants}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                        {/* Women Team */}
+                                                                        <td className="p-0 border-r text-center bg-pink-50/5">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.women_teams ? (
+                                                                                    <span className="font-medium text-pink-600 print:text-black">{data.women_teams}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                        {/* Women Participant */}
+                                                                        <td className="p-0 border-r text-center bg-pink-50/10">
+                                                                            <div className="flex items-center justify-center h-12 w-full text-[10px] print:h-6 print:text-[8px]">
+                                                                                {data?.women_participants ? (
+                                                                                    <span className="font-bold text-pink-700 print:text-black">{data.women_participants}</span>
+                                                                                ) : <span className="text-muted-foreground/30 print:hidden">-</span>}
+                                                                            </div>
+                                                                        </td>
+                                                                    </React.Fragment>
                                                                 );
                                                             })}
                                                         </tr>

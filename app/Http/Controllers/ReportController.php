@@ -63,39 +63,67 @@ class ReportController extends Controller
 
                 // Get the IDs of sports that have data in this submission
                 foreach ($submission->teamSportsData as $data) {
-                    $total = ($data->teams_male ?? 0) + ($data->teams_female ?? 0) + ($data->players_male ?? 0) + ($data->players_female ?? 0);
-                    if ($total > 0) {
-                        // Initialize if not set (though we did above, safety check)
+                    $hasData = ($data->teams_male ?? 0) + ($data->players_male ?? 0) + ($data->teams_female ?? 0) + ($data->players_female ?? 0) > 0;
+                    
+                    if ($hasData) {
                         if (!isset($matrixData[$divisionName][$data->sport_id])) {
-                             $matrixData[$divisionName][$data->sport_id] = 0;
+                             $matrixData[$divisionName][$data->sport_id] = [
+                                 'men_teams' => 0,
+                                 'men_participants' => 0,
+                                 'women_teams' => 0,
+                                 'women_participants' => 0
+                             ];
                         }
-                        $matrixData[$divisionName][$data->sport_id] += $total;
+                        $matrixData[$divisionName][$data->sport_id]['men_teams'] += ($data->teams_male ?? 0);
+                        $matrixData[$divisionName][$data->sport_id]['men_participants'] += ($data->players_male ?? 0);
+                        $matrixData[$divisionName][$data->sport_id]['women_teams'] += ($data->teams_female ?? 0);
+                        $matrixData[$divisionName][$data->sport_id]['women_participants'] += ($data->players_female ?? 0);
                     }
                 }
 
                 // Check for Swimming Data
                 if ($submission->swimmingData->isNotEmpty()) {
-                     $swimmingTotal = $submission->swimmingData->sum(function ($data) {
-                        return ($data->teams_male ?? 0) + ($data->teams_female ?? 0) + ($data->players_male ?? 0) + ($data->players_female ?? 0);
-                    });
-                    if ($swimmingTotal > 0) {
+                     $swimMenTeams = $submission->swimmingData->sum('teams_male');
+                     $swimMenPlayers = $submission->swimmingData->sum('players_male');
+                     $swimWomenTeams = $submission->swimmingData->sum('teams_female');
+                     $swimWomenPlayers = $submission->swimmingData->sum('players_female');
+
+                    if (($swimMenTeams + $swimMenPlayers + $swimWomenTeams + $swimWomenPlayers) > 0) {
                         if (!isset($matrixData[$divisionName][9001])) {
-                             $matrixData[$divisionName][9001] = 0;
+                             $matrixData[$divisionName][9001] = [
+                                 'men_teams' => 0,
+                                 'men_participants' => 0,
+                                 'women_teams' => 0,
+                                 'women_participants' => 0
+                             ];
                         }
-                         $matrixData[$divisionName][9001] += $swimmingTotal;
+                         $matrixData[$divisionName][9001]['men_teams'] += $swimMenTeams;
+                         $matrixData[$divisionName][9001]['men_participants'] += $swimMenPlayers;
+                         $matrixData[$divisionName][9001]['women_teams'] += $swimWomenTeams;
+                         $matrixData[$divisionName][9001]['women_participants'] += $swimWomenPlayers;
                     }
                 }
 
                 // Check for Track & Field Data
                 if ($submission->trackFieldData->isNotEmpty()) {
-                    $athleticsTotal = $submission->trackFieldData->sum(function ($data) {
-                        return ($data->teams_male ?? 0) + ($data->teams_female ?? 0) + ($data->players_male ?? 0) + ($data->players_female ?? 0);
-                    });
-                     if ($athleticsTotal > 0) {
+                     $trackMenTeams = $submission->trackFieldData->sum('teams_male');
+                     $trackMenPlayers = $submission->trackFieldData->sum('players_male');
+                     $trackWomenTeams = $submission->trackFieldData->sum('teams_female');
+                     $trackWomenPlayers = $submission->trackFieldData->sum('players_female');
+                    
+                     if (($trackMenTeams + $trackMenPlayers + $trackWomenTeams + $trackWomenPlayers) > 0) {
                         if (!isset($matrixData[$divisionName][9002])) {
-                             $matrixData[$divisionName][9002] = 0;
+                             $matrixData[$divisionName][9002] = [
+                                 'men_teams' => 0,
+                                 'men_participants' => 0,
+                                 'women_teams' => 0,
+                                 'women_participants' => 0
+                             ];
                         }
-                        $matrixData[$divisionName][9002] += $athleticsTotal;
+                        $matrixData[$divisionName][9002]['men_teams'] += $trackMenTeams;
+                        $matrixData[$divisionName][9002]['men_participants'] += $trackMenPlayers;
+                        $matrixData[$divisionName][9002]['women_teams'] += $trackWomenTeams;
+                        $matrixData[$divisionName][9002]['women_participants'] += $trackWomenPlayers;
                     }
                 }
             }
