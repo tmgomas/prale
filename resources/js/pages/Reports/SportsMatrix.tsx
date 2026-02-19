@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Check, Info, LayoutGrid, MapPin, Trophy, Printer } from 'lucide-react';
+import { Check, Info, LayoutGrid, MapPin, Trophy, Printer, FileSpreadsheet } from 'lucide-react';
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -55,6 +55,10 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleExport = () => {
+        window.location.href = '/reports/sports-matrix/export';
     };
 
     const { normalDivisions, districtLevelKey } = React.useMemo(() => {
@@ -178,6 +182,15 @@ export default function SportsMatrix({ districts, sports, selectedDistrictId, ma
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={handleExport}
+                            className="gap-2"
+                        >
+                            <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                            Export Excel
+                        </Button>
+
                         <Button
                             variant="outline"
                             onClick={handlePrint}

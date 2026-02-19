@@ -2,14 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AllDistrictsExport;
 use App\Models\District;
 use App\Models\Sport;
 use App\Models\Submission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
+    /**
+     * Export all districts matrix to Excel.
+     */
+    public function exportSportsMatrix()
+    {
+        return Excel::download(new AllDistrictsExport, 'sports-matrix-all-districts.xlsx');
+    }
+    /**
+     * Display the sports participation matrix report.
+     */
     /**
      * Display the sports participation matrix report.
      */
@@ -39,98 +51,7 @@ class ReportController extends Controller
         $sports->push($athleticsSport);
 
         $selectedDistrictId = $request->input('district_id');
-        $matrixData = [];
-
-        if ($selectedDistrictId) {
-            // Fetch submissions for the selected district with their team sports data
-            $submissions = Submission::with(['teamSportsData', 'swimmingData', 'trackFieldData'])
-                ->where('district_id', $selectedDistrictId)
-                ->where('status', '!=', 'draft') // Optional: Exclude drafts if needed
-                ->get();
-
-            foreach ($submissions as $submission) {
-                // Determine the division name. 
-                // Assuming 'division' column stores the DS Division name.
-                $divisionName = $submission->division;
-                
-                if (!$divisionName) {
-                    continue;
-                }
-
-                if (!isset($matrixData[$divisionName])) {
-                    $matrixData[$divisionName] = [];
-                }
-
-                // Get the IDs of sports that have data in this submission
-                foreach ($submission->teamSportsData as $data) {
-                    $hasData = ($data->teams_male ?? 0) + ($data->players_male ?? 0) + ($data->teams_female ?? 0) + ($data->players_female ?? 0) > 0;
-                    
-                    if ($hasData) {
-                        if (!isset($matrixData[$divisionName][$data->sport_id])) {
-                             $matrixData[$divisionName][$data->sport_id] = [
-                                 'men_teams' => 0,
-                                 'men_participants' => 0,
-                                 'women_teams' => 0,
-                                 'women_participants' => 0
-                             ];
-                        }
-                        $matrixData[$divisionName][$data->sport_id]['men_teams'] += ($data->teams_male ?? 0);
-                        $matrixData[$divisionName][$data->sport_id]['men_participants'] += ($data->players_male ?? 0);
-                        $matrixData[$divisionName][$data->sport_id]['women_teams'] += ($data->teams_female ?? 0);
-                        $matrixData[$divisionName][$data->sport_id]['women_participants'] += ($data->players_female ?? 0);
-                    }
-                }
-
-                // Check for Swimming Data
-                if ($submission->swimmingData->isNotEmpty()) {
-                     $swimMenTeams = $submission->swimmingData->sum('teams_male');
-                     $swimMenPlayers = $submission->swimmingData->sum('players_male');
-                     $swimWomenTeams = $submission->swimmingData->sum('teams_female');
-                     $swimWomenPlayers = $submission->swimmingData->sum('players_female');
-
-                    if (($swimMenTeams + $swimMenPlayers + $swimWomenTeams + $swimWomenPlayers) > 0) {
-                        if (!isset($matrixData[$divisionName][9001])) {
-                             $matrixData[$divisionName][9001] = [
-                                 'men_teams' => 0,
-                                 'men_participants' => 0,
-                                 'women_teams' => 0,
-                                 'women_participants' => 0
-                             ];
-                        }
-                         $matrixData[$divisionName][9001]['men_teams'] += $swimMenTeams;
-                         $matrixData[$divisionName][9001]['men_participants'] += $swimMenPlayers;
-                         $matrixData[$divisionName][9001]['women_teams'] += $swimWomenTeams;
-                         $matrixData[$divisionName][9001]['women_participants'] += $swimWomenPlayers;
-                    }
-                }
-
-                // Check for Track & Field Data
-                if ($submission->trackFieldData->isNotEmpty()) {
-                     $trackMenTeams = $submission->trackFieldData->sum('teams_male');
-                     $trackMenPlayers = $submission->trackFieldData->sum('players_male');
-                     $trackWomenTeams = $submission->trackFieldData->sum('teams_female');
-                     $trackWomenPlayers = $submission->trackFieldData->sum('players_female');
-                    
-                     if (($trackMenTeams + $trackMenPlayers + $trackWomenTeams + $trackWomenPlayers) > 0) {
-                        if (!isset($matrixData[$divisionName][9002])) {
-                             $matrixData[$divisionName][9002] = [
-                                 'men_teams' => 0,
-                                 'men_participants' => 0,
-                                 'women_teams' => 0,
-                                 'women_participants' => 0
-                             ];
-                        }
-                        $matrixData[$divisionName][9002]['men_teams'] += $trackMenTeams;
-                        $matrixData[$divisionName][9002]['men_participants'] += $trackMenPlayers;
-                        $matrixData[$divisionName][9002]['women_teams'] += $trackWomenTeams;
-                        $matrixData[$divisionName][9002]['women_participants'] += $trackWomenPlayers;
-                    }
-                }
-            }
-
-            // Sort divisions alphabetically
-            ksort($matrixData);
-        }
+        $matrixData = self::getMatrixData($selectedDistrictId);
 
         return Inertia::render('Reports/SportsMatrix', [
             'districts' => $districts,
@@ -138,5 +59,108 @@ class ReportController extends Controller
             'selectedDistrictId' => $selectedDistrictId,
             'matrixData' => $matrixData,
         ]);
+    }
+
+    /**
+     * Calculate matrix data for a specific district.
+     */
+    public static function getMatrixData($districtId)
+    {
+        if (!$districtId) {
+            return [];
+        }
+
+        $matrixData = [];
+
+        // Fetch submissions for the selected district with their team sports data
+        $submissions = Submission::with(['teamSportsData', 'swimmingData', 'trackFieldData'])
+            ->where('district_id', $districtId)
+            ->where('status', '!=', 'draft') // Optional: Exclude drafts if needed
+            ->get();
+
+        foreach ($submissions as $submission) {
+            // Determine the division name. 
+            // Assuming 'division' column stores the DS Division name.
+            $divisionName = $submission->division;
+            
+            if (!$divisionName) {
+                continue;
+            }
+
+            if (!isset($matrixData[$divisionName])) {
+                $matrixData[$divisionName] = [];
+            }
+
+            // Get the IDs of sports that have data in this submission
+            foreach ($submission->teamSportsData as $data) {
+                $hasData = ($data->teams_male ?? 0) + ($data->players_male ?? 0) + ($data->teams_female ?? 0) + ($data->players_female ?? 0) > 0;
+                
+                if ($hasData) {
+                    if (!isset($matrixData[$divisionName][$data->sport_id])) {
+                            $matrixData[$divisionName][$data->sport_id] = [
+                                'men_teams' => 0,
+                                'men_participants' => 0,
+                                'women_teams' => 0,
+                                'women_participants' => 0
+                            ];
+                    }
+                    $matrixData[$divisionName][$data->sport_id]['men_teams'] += ($data->teams_male ?? 0);
+                    $matrixData[$divisionName][$data->sport_id]['men_participants'] += ($data->players_male ?? 0);
+                    $matrixData[$divisionName][$data->sport_id]['women_teams'] += ($data->teams_female ?? 0);
+                    $matrixData[$divisionName][$data->sport_id]['women_participants'] += ($data->players_female ?? 0);
+                }
+            }
+
+            // Check for Swimming Data
+            if ($submission->swimmingData->isNotEmpty()) {
+                    $swimMenTeams = $submission->swimmingData->sum('teams_male');
+                    $swimMenPlayers = $submission->swimmingData->sum('players_male');
+                    $swimWomenTeams = $submission->swimmingData->sum('teams_female');
+                    $swimWomenPlayers = $submission->swimmingData->sum('players_female');
+
+                if (($swimMenTeams + $swimMenPlayers + $swimWomenTeams + $swimWomenPlayers) > 0) {
+                    if (!isset($matrixData[$divisionName][9001])) {
+                            $matrixData[$divisionName][9001] = [
+                                'men_teams' => 0,
+                                'men_participants' => 0,
+                                'women_teams' => 0,
+                                'women_participants' => 0
+                            ];
+                    }
+                        $matrixData[$divisionName][9001]['men_teams'] += $swimMenTeams;
+                        $matrixData[$divisionName][9001]['men_participants'] += $swimMenPlayers;
+                        $matrixData[$divisionName][9001]['women_teams'] += $swimWomenTeams;
+                        $matrixData[$divisionName][9001]['women_participants'] += $swimWomenPlayers;
+                }
+            }
+
+            // Check for Track & Field Data
+            if ($submission->trackFieldData->isNotEmpty()) {
+                    $trackMenTeams = $submission->trackFieldData->sum('teams_male');
+                    $trackMenPlayers = $submission->trackFieldData->sum('players_male');
+                    $trackWomenTeams = $submission->trackFieldData->sum('teams_female');
+                    $trackWomenPlayers = $submission->trackFieldData->sum('players_female');
+                
+                    if (($trackMenTeams + $trackMenPlayers + $trackWomenTeams + $trackWomenPlayers) > 0) {
+                    if (!isset($matrixData[$divisionName][9002])) {
+                            $matrixData[$divisionName][9002] = [
+                                'men_teams' => 0,
+                                'men_participants' => 0,
+                                'women_teams' => 0,
+                                'women_participants' => 0
+                            ];
+                    }
+                    $matrixData[$divisionName][9002]['men_teams'] += $trackMenTeams;
+                    $matrixData[$divisionName][9002]['men_participants'] += $trackMenPlayers;
+                    $matrixData[$divisionName][9002]['women_teams'] += $trackWomenTeams;
+                    $matrixData[$divisionName][9002]['women_participants'] += $trackWomenPlayers;
+                }
+            }
+        }
+
+        // Sort divisions alphabetically
+        ksort($matrixData);
+
+        return $matrixData;
     }
 }

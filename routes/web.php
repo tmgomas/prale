@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->except(['create', 'store']);
 
     // Reports
+    Route::get('reports/sports-matrix/export', [\App\Http\Controllers\ReportController::class, 'exportSportsMatrix'])->name('reports.sports-matrix.export');
     Route::get('reports/sports-matrix', [\App\Http\Controllers\ReportController::class, 'sportsMatrix'])->name('reports.sports-matrix');
 });
 
