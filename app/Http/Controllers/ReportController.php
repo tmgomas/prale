@@ -17,6 +17,9 @@ class ReportController extends Controller
      */
     public function exportSportsMatrix()
     {
+        set_time_limit(300); // 5 minutes
+        ini_set('memory_limit', '512M');
+
         return Excel::download(new AllDistrictsExport, 'sports-matrix-all-districts.xlsx');
     }
     /**
