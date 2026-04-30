@@ -22,6 +22,17 @@ class ReportController extends Controller
 
         return Excel::download(new AllDistrictsExport, 'sports-matrix-all-districts.xlsx');
     }
+
+    /**
+     * Export all districts availability matrix to Excel.
+     */
+    public function exportSportsAvailability()
+    {
+        set_time_limit(300); // 5 minutes
+        ini_set('memory_limit', '512M');
+
+        return Excel::download(new \App\Exports\AvailabilityAllDistrictsExport, 'sports-availability-all-districts.xlsx');
+    }
     /**
      * Display the sports participation matrix report.
      */
@@ -59,6 +70,45 @@ class ReportController extends Controller
         return Inertia::render('Reports/SportsMatrix', [
             'districts' => $districts,
             'sports' => $sports, // This collection now includes Swimming and Athletics
+            'selectedDistrictId' => $selectedDistrictId,
+            'matrixData' => $matrixData,
+        ]);
+    }
+
+    /**
+     * Display the sports availability report.
+     */
+    public function sportsAvailability(Request $request)
+    {
+        $districts = District::orderBy('name_en')->get();
+        // Get existing sports and convert to array or collection we can modify
+        $sports = Sport::orderBy('id')->get();
+        
+        // Define pseudo-sports for Swimming and Athletics
+        $swimmingSport = new Sport([
+            'name_en' => 'Swimming',
+            'name_si' => 'පිහිනුම්',
+            'code' => 'SW',
+        ]);
+        $swimmingSport->id = 9001; // Assign a unique ID outside normal range
+
+        $athleticsSport = new Sport([
+            'name_en' => 'Track & Field',
+            'name_si' => 'මලල ක්‍රීඩා',
+            'code' => 'TF',
+        ]);
+        $athleticsSport->id = 9002; // Assign a unique ID outside normal range
+
+        // Append to the sports collection (we'll push to the collection)
+        $sports->push($swimmingSport);
+        $sports->push($athleticsSport);
+
+        $selectedDistrictId = $request->input('district_id');
+        $matrixData = self::getMatrixData($selectedDistrictId);
+
+        return Inertia::render('Reports/SportsAvailability', [
+            'districts' => $districts,
+            'sports' => $sports,
             'selectedDistrictId' => $selectedDistrictId,
             'matrixData' => $matrixData,
         ]);

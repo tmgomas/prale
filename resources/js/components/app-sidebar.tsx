@@ -28,8 +28,13 @@ const mainNavItems: NavItem[] = [
         icon: BookOpen,
     },
     {
-        title: 'Reports',
+        title: 'Sports Matrix',
         href: '/reports/sports-matrix',
+        icon: Trophy,
+    },
+    {
+        title: 'Sports Availability',
+        href: '/reports/sports-availability',
         icon: Trophy,
     },
 ];

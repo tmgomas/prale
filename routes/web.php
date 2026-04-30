@@ -26,6 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Reports
     Route::get('reports/sports-matrix/export', [\App\Http\Controllers\ReportController::class, 'exportSportsMatrix'])->name('reports.sports-matrix.export');
     Route::get('reports/sports-matrix', [\App\Http\Controllers\ReportController::class, 'sportsMatrix'])->name('reports.sports-matrix');
+    Route::get('reports/sports-availability/export', [\App\Http\Controllers\ReportController::class, 'exportSportsAvailability'])->name('reports.sports-availability.export');
+    Route::get('reports/sports-availability', [\App\Http\Controllers\ReportController::class, 'sportsAvailability'])->name('reports.sports-availability');
 });
 
 require __DIR__ . '/settings.php';
