@@ -28,6 +28,12 @@ export default function Success() {
                     </p>
 
                     <div className="flex flex-col gap-2">
+                        <Button asChild variant="outline" className="w-full">
+                            <Link href="/submissions/lookup">
+                                Edit Submission / ඉදිරිපත් කිරීම සංස්කරණය කරන්න
+                            </Link>
+                        </Button>
+
                         <Button asChild className="w-full">
                             <Link href="/submissions/create">
                                 Submit Another / තවත් එකක් ඉදිරිපත් කරන්න

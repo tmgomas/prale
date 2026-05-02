@@ -60,10 +60,17 @@ interface FinancialData {
     total_expense: number;
 }
 
+interface DivisionData {
+    id: number;
+    name_si: string;
+    name_en: string;
+}
+
 interface Submission {
     id: number;
     district: District;
     division: string;
+    division_data?: DivisionData;
     officer_name: string;
     designation: string;
     epf_number: string;
@@ -85,7 +92,7 @@ export default function Show({ submission }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'ඉදිරිපත් කිරීම්', href: '/submissions' },
-        { title: `${submission.district.name_si} - ${submission.division}`, href: `/submissions/${submission.id}` },
+        { title: `${submission.district.name_si} - ${submission.division_data?.name_si || submission.division}`, href: `/submissions/${submission.id}` },
     ];
 
     const formatDate = (dateString: string | null) => {
@@ -112,7 +119,7 @@ export default function Show({ submission }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${submission.district.name_si} - ${submission.division}`} />
+            <Head title={`${submission.district.name_si} - ${submission.division_data?.name_si || submission.division}`} />
 
             <div className="container mx-auto py-8 px-4">
                 <div className="flex justify-between items-center mb-6">
@@ -124,7 +131,7 @@ export default function Show({ submission }: Props) {
                             </Button>
                         </Link>
                         <h1 className="text-3xl font-bold flex items-center gap-3">
-                            {submission.district.name_si} - {submission.division}
+                            {submission.district.name_si} - {submission.division_data?.name_si || submission.division}
                             {submission.status === 'submitted' ? (
                                 <Badge variant="default">ඉදිරිපත් කළා</Badge>
                             ) : (

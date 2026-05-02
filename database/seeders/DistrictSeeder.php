@@ -13,7 +13,7 @@ class DistrictSeeder extends Seeder
     public function run(): void
     {
         $districts = [
-            ['name_si' => 'නාගරික තරුණයා', 'name_en' => 'Urban youth'],
+            ['name_si' => 'නාගරික තරුණයා', 'name_en' => 'Urban Youth'],
             ['name_si' => 'කොළඹ', 'name_en' => 'Colombo'],
             ['name_si' => 'ගම්පහ', 'name_en' => 'Gampaha'],
             ['name_si' => 'කළුතර', 'name_en' => 'Kalutara'],
@@ -36,7 +36,7 @@ class DistrictSeeder extends Seeder
             ['name_si' => 'අනුරාධපුර', 'name_en' => 'Anuradhapura'],
             ['name_si' => 'පොළොන්නරුව', 'name_en' => 'Polonnaruwa'],
             ['name_si' => 'බදුල්ල', 'name_en' => 'Badulla'],
-            ['name_si' => 'මොණරාගල', 'name_en' => 'Monaragala'],
+            ['name_si' => 'මොණරාගල', 'name_en' => 'Moneragala'],
             ['name_si' => 'රත්නපුර', 'name_en' => 'Ratnapura'],
             ['name_si' => 'කෑගල්ල', 'name_en' => 'Kegalle'],
         ];

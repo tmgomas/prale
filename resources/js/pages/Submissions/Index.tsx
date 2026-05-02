@@ -18,10 +18,17 @@ interface User {
     email: string;
 }
 
+interface DivisionData {
+    id: number;
+    name_si: string;
+    name_en: string;
+}
+
 interface Submission {
     id: number;
     district: District;
     division: string;
+    division_data?: DivisionData;
     officer_name: string;
     designation: string;
     epf_number: string;
@@ -74,7 +81,7 @@ export default function Index({ submissions }: Props) {
                     <div>
                         <h1 className="text-3xl font-bold">ඉදිරිපත් කිරීම්</h1>
                         <p className="text-muted-foreground mt-1">
-                            35වන ජාතික යෞවන ක්‍රීඩා උළෙල 2025 - දත්ත එකතු කිරීම
+                            36වන ජාතික යෞවන ක්‍රීඩා උළෙල 2026 - දත්ත එකතු කිරීම
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -123,7 +130,7 @@ export default function Index({ submissions }: Props) {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <CardTitle className="flex items-center gap-2">
-                                                {submission.district.name_si} - {submission.division}
+                                                {submission.district.name_si} - {submission.division_data?.name_si || submission.division}
                                                 {getStatusBadge(submission.status)}
                                             </CardTitle>
                                             <CardDescription className="mt-2">

@@ -29,7 +29,8 @@ interface Props {
 
 interface FormData {
     district_id: number | null;
-    division: string;
+    division_id: number | null;
+    submission_type: 'district' | 'division';
     officer_name: string;
     designation: string;
     epf_number: string;
@@ -79,7 +80,8 @@ export default function Create({ districts, sports }: Props) {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<FormData>({
         district_id: null,
-        division: '',
+        division_id: null,
+        submission_type: 'division',
         officer_name: '',
         designation: '',
         epf_number: '',
@@ -126,7 +128,9 @@ export default function Create({ districts, sports }: Props) {
 
         if (step === 1) {
             if (!formData.district_id) newErrors.district_id = 'දිස්ත්‍රික්කය තෝරන්න';
-            if (!formData.division.trim()) newErrors.division = 'ප්‍රාදේශීය ලේකම් කාර්යාලය ඇතුළත් කරන්න';
+            if (formData.submission_type === 'division' && !formData.division_id) {
+                newErrors.division_id = 'ප්‍රාදේශීය ලේකම් කොට්ඨාසය තෝරන්න';
+            }
         }
 
         if (step === 2) {
@@ -156,12 +160,12 @@ export default function Create({ districts, sports }: Props) {
 
     return (
         <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900">
-            <Head title="New Submission / නව ඉදිරිපත් කිරීම" />
+            <Head title="36th National Youth Sports Festival 2026 / 36වන ජාතික යෞවන ක්‍රීඩා උළෙල 2026" />
 
             <div className="container mx-auto py-8 px-4">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-2xl">35th National Youth Sports Festival 2025 / 35වන ජාතික යෞවන ක්‍රීඩා උළෙල 2025</CardTitle>
+                        <CardTitle className="text-2xl">36th National Youth Sports Festival 2026 / 36වන ජාතික යෞවන ක්‍රීඩා උළෙල 2026</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {/* Progress Indicator */}

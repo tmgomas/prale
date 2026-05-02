@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\District;
+use App\Models\Division;
 use App\Models\FinancialData;
 use App\Models\Sport;
 use App\Models\Submission;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 
 class SubmissionController extends Controller
 {
@@ -21,7 +23,7 @@ class SubmissionController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Submission::with(['district', 'user'])
+        $query = Submission::with(['district', 'divisionData', 'user'])
             ->latest();
 
         if ($request->filled('district_id')) {
@@ -29,7 +31,13 @@ class SubmissionController extends Controller
         }
 
         if ($request->filled('division')) {
-            $query->where('division', 'like', '%' . $request->input('division') . '%');
+            $divisionSearch = $request->input('division');
+            $query->where(function($q) use ($divisionSearch) {
+                $q->whereHas('divisionData', function($q2) use ($divisionSearch) {
+                    $q2->where('name_en', 'like', "%{$divisionSearch}%")
+                       ->orWhere('name_si', 'like', "%{$divisionSearch}%");
+                })->orWhere('division', 'like', "%{$divisionSearch}%");
+            });
         }
 
         $submissions = $query->paginate(15)
@@ -48,6 +56,7 @@ class SubmissionController extends Controller
     {
         $query = Submission::with([
             'district',
+            'divisionData',
             'teamSportsData.sport',
             'swimmingData',
             'trackFieldData',
@@ -59,7 +68,13 @@ class SubmissionController extends Controller
         }
 
         if ($request->filled('division')) {
-            $query->where('division', 'like', '%' . $request->input('division') . '%');
+            $divisionSearch = $request->input('division');
+            $query->where(function($q) use ($divisionSearch) {
+                $q->whereHas('divisionData', function($q2) use ($divisionSearch) {
+                    $q2->where('name_en', 'like', "%{$divisionSearch}%")
+                       ->orWhere('name_si', 'like', "%{$divisionSearch}%");
+                })->orWhere('division', 'like', "%{$divisionSearch}%");
+            });
         }
 
         $submissions = $query->get();
@@ -80,8 +95,22 @@ class SubmissionController extends Controller
 
         return Inertia::render('Submissions/Create', [
             'districts' => $districts,
-            'sports' => $sports,
+            'sports'    => $sports,
         ]);
+    }
+
+    /**
+     * Return divisions for a given district (JSON API)
+     */
+    public function getDivisions(Request $request)
+    {
+        $request->validate(['district_id' => 'required|exists:districts,id']);
+
+        $divisions = Division::where('district_id', $request->district_id)
+            ->orderBy('sort_order')
+            ->get(['id', 'name_si', 'name_en']);
+
+        return response()->json($divisions);
     }
 
     /**
@@ -91,11 +120,12 @@ class SubmissionController extends Controller
     {
         $validated = $request->validate([
             // Step 1 & 2: Basic Information
-            'district_id' => 'required|exists:districts,id',
-            'division' => 'required|string|max:255',
+            'district_id'     => 'required|exists:districts,id',
+            'submission_type' => 'required|in:district,division',
+            'division_id'     => 'nullable|exists:divisions,id',
             'officer_name' => 'required|string|max:255',
             'designation' => 'required|in:AD,DYO,YSO,AYSO',
-            'epf_number' => 'required|string|max:50',
+            'epf_number' => 'required|string|max:50|unique:submissions,epf_number',
             'status' => 'nullable|in:draft,submitted',
 
             // Step 3: Team Sports Data
@@ -131,6 +161,8 @@ class SubmissionController extends Controller
             'financial.income_external_sources' => 'nullable|numeric|min:0',
             'financial.expense_team_sports' => 'nullable|numeric|min:0',
             'financial.expense_track_field' => 'nullable|numeric|min:0',
+        ], [
+            'epf_number.unique' => 'මෙම EPF අංකයෙන් දැනටමත් දත්ත ඇතුළත් කර ඇත. කරුණාකර වෙනස් අංකයක් ඇතුළත් කරන්න හෝ පවතින දත්ත සංස්කරණය කරන්න.',
         ]);
 
 
@@ -138,7 +170,7 @@ class SubmissionController extends Controller
             // Create submission
             $submission = Submission::create([
                 'district_id' => $validated['district_id'],
-                'division' => $validated['division'],
+                'division'    => $validated['division_id'],
                 'officer_name' => $validated['officer_name'],
                 'designation' => $validated['designation'],
                 'epf_number' => $validated['epf_number'],
@@ -192,6 +224,57 @@ class SubmissionController extends Controller
     }
 
     /**
+     * Show the public lookup form (EPF + District)
+     */
+    public function lookup(): Response
+    {
+        $districts = District::orderBy('name_si')->get(['id', 'name_si', 'name_en']);
+
+        return Inertia::render('Submissions/Lookup', [
+            'districts' => $districts,
+        ]);
+    }
+
+    /**
+     * Process EPF + District lookup and redirect to public edit page
+     */
+    public function lookupFind(Request $request)
+    {
+        // Rate limit: 5 attempts per 10 minutes per IP
+        $key = 'submission-lookup:' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+            return back()->withErrors([
+                'epf_number' => "ඉතා වැඩිවාරයක් උත්සාහ කළා. තත්පර {$seconds} කින් නැවත උත්සාහ කරන්න.",
+            ]);
+        }
+
+        $request->validate([
+            'epf_number'  => 'required|string|max:50',
+            'district_id' => 'required|exists:districts,id',
+        ]);
+
+        $submission = Submission::where('epf_number', trim($request->epf_number))
+            ->where('district_id', $request->district_id)
+            ->latest()
+            ->first();
+
+        if (!$submission) {
+            RateLimiter::hit($key, 600); // count failed attempt, expire in 10 min
+
+            return back()->withErrors([
+                'epf_number' => 'EPF අංකය හෝ දිස්ත්‍රික්කය නිවැරදි නොවේ. නැවත පරීක්ෂා කරන්න.',
+            ]);
+        }
+
+        // Success — clear rate limit
+        RateLimiter::clear($key);
+
+        return redirect()->route('submissions.public-edit', $submission->id);
+    }
+
+    /**
      * Display the success page
      */
     public function success(): Response
@@ -206,6 +289,7 @@ class SubmissionController extends Controller
     {
         $submission->load([
             'district',
+            'divisionData',
             'user',
             'teamSportsData.sport',
             'swimmingData',
@@ -219,7 +303,7 @@ class SubmissionController extends Controller
     }
 
     /**
-     * Show the form for editing the specified submission
+     * Show the form for editing the specified submission (auth protected)
      */
     public function edit(Submission $submission): Response
     {
@@ -235,8 +319,30 @@ class SubmissionController extends Controller
 
         return Inertia::render('Submissions/Edit', [
             'submission' => $submission,
-            'districts' => $districts,
-            'sports' => $sports,
+            'districts'  => $districts,
+            'sports'     => $sports,
+        ]);
+    }
+
+    /**
+     * Show the public edit form (no auth — accessed via EPF+District lookup)
+     */
+    public function publicEdit(Submission $submission): Response
+    {
+        $submission->load([
+            'teamSportsData.sport',
+            'swimmingData',
+            'trackFieldData',
+            'financialData',
+        ]);
+
+        $districts = District::orderBy('name_si')->get();
+        $sports    = Sport::orderBy('code')->get();
+
+        return Inertia::render('Submissions/PublicEdit', [
+            'submission' => $submission,
+            'districts'  => $districts,
+            'sports'     => $sports,
         ]);
     }
 
@@ -247,11 +353,12 @@ class SubmissionController extends Controller
     {
         $validated = $request->validate([
             // Step 1 & 2: Basic Information
-            'district_id' => 'required|exists:districts,id',
-            'division' => 'required|string|max:255',
+            'district_id'     => 'required|exists:districts,id',
+            'submission_type' => 'required|in:district,division',
+            'division_id'     => 'nullable|exists:divisions,id',
             'officer_name' => 'required|string|max:255',
             'designation' => 'required|in:AD,DYO,YSO,AYSO',
-            'epf_number' => 'required|string|max:50',
+            'epf_number' => 'required|string|max:50|unique:submissions,epf_number,' . $submission->id,
             'status' => 'nullable|in:draft,submitted',
 
             // Step 3: Team Sports Data
@@ -287,6 +394,8 @@ class SubmissionController extends Controller
             'financial.income_external_sources' => 'nullable|numeric|min:0',
             'financial.expense_team_sports' => 'nullable|numeric|min:0',
             'financial.expense_track_field' => 'nullable|numeric|min:0',
+        ], [
+            'epf_number.unique' => 'මෙම EPF අංකයෙන් දැනටමත් දත්ත ඇතුළත් කර ඇත. කරුණාකර වෙනස් අංකයක් ඇතුළත් කරන්න.',
         ]);
 
 
@@ -294,7 +403,7 @@ class SubmissionController extends Controller
             // Update submission
             $submission->update([
                 'district_id' => $validated['district_id'],
-                'division' => $validated['division'],
+                'division'    => $validated['division_id'],
                 'officer_name' => $validated['officer_name'],
                 'designation' => $validated['designation'],
                 'epf_number' => $validated['epf_number'],

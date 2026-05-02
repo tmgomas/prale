@@ -15,6 +15,12 @@ Route::get('submissions/create', [\App\Http\Controllers\SubmissionController::cl
 Route::get('submissions/export', [\App\Http\Controllers\SubmissionController::class, 'export'])->name('submissions.export');
 Route::post('submissions', [\App\Http\Controllers\SubmissionController::class, 'store'])->name('submissions.store');
 Route::get('submissions/success', [\App\Http\Controllers\SubmissionController::class, 'success'])->name('submissions.success');
+Route::get('api/divisions', [\App\Http\Controllers\SubmissionController::class, 'getDivisions'])->name('api.divisions');
+
+// Public lookup (EPF + District → find submission)
+Route::get('submissions/lookup', [\App\Http\Controllers\SubmissionController::class, 'lookup'])->name('submissions.lookup');
+Route::post('submissions/lookup', [\App\Http\Controllers\SubmissionController::class, 'lookupFind'])->name('submissions.lookup.find');
+Route::get('submissions/{submission}/public-edit', [\App\Http\Controllers\SubmissionController::class, 'publicEdit'])->name('submissions.public-edit');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');

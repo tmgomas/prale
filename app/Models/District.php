@@ -19,4 +19,12 @@ class District extends Model
     {
         return $this->hasMany(Submission::class);
     }
+
+    /**
+     * Get all divisions for this district
+     */
+    public function divisions(): HasMany
+    {
+        return $this->hasMany(Division::class);
+    }
 }

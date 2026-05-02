@@ -94,7 +94,12 @@ class DivisionAnalysisController extends Controller
             'trackFieldData'
         ])
             ->where('district_id', $districtId)
-            ->where('division', $division)
+            ->where(function ($q) use ($division) {
+                $q->whereHas('divisionData', function($q2) use ($division) {
+                    $q2->where('name_en', $division)
+                       ->orWhere('name_si', $division);
+                })->orWhere('division', $division);
+            })
             ->get();
 
         $district = $submissions->first()?->district;

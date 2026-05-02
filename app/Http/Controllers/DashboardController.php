@@ -28,9 +28,11 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($district) {
                 // Get division breakdown for this district
-                $breakdown = Submission::where('district_id', $district->id)
-                    ->select('division', DB::raw('count(*) as count'))
-                    ->groupBy('division')
+                $breakdown = DB::table('submissions')
+                    ->where('submissions.district_id', $district->id)
+                    ->leftJoin('divisions', 'submissions.division', '=', 'divisions.id')
+                    ->select(DB::raw('COALESCE(divisions.name_en, submissions.division) as division'), DB::raw('count(*) as count'))
+                    ->groupBy('divisions.id', 'divisions.name_en', 'submissions.division')
                     ->orderBy('count', 'desc')
                     ->get();
 

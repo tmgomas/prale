@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // Seed reference data
         $this->call([
             DistrictSeeder::class,
+            DivisionSeeder::class,
             SportSeeder::class,
         ]);
 

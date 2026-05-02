@@ -115,7 +115,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Division / ප්‍රා.ලේ. කොට්ඨාසය:</span>
-                        <span class="info-value">{{ $submission->division }}</span>
+                        <span class="info-value">{{ $submission->divisionData->name_en ?? $submission->division }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Officer Name / නිළධාරී නම:</span>

@@ -33,6 +33,14 @@ class Submission extends Model
     }
 
     /**
+     * Get the division for this submission
+     */
+    public function divisionData(): BelongsTo
+    {
+        return $this->belongsTo(Division::class, 'division', 'id');
+    }
+
+    /**
      * Get the user who created this submission
      */
     public function user(): BelongsTo
