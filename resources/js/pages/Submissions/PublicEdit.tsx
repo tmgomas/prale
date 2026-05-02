@@ -171,7 +171,7 @@ export default function PublicEdit({ submission, districts, sports }: Props) {
 
     const handleSubmit = () => {
         const dataToSubmit = { ...formData, status: 'submitted' };
-        router.put(`/submissions/${submission.id}`, dataToSubmit);
+        router.put(`/submissions/${submission.id}/public-edit`, dataToSubmit);
     };
 
     return (

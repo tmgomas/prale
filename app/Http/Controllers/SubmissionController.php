@@ -452,6 +452,11 @@ class SubmissionController extends Controller
                 ]);
             }
 
+            if (!auth()->check()) {
+                return redirect()->route('submissions.success')
+                    ->with('success', 'ඉදිරිපත් කිරීම සාර්ථකව යාවත්කාලීන කරන ලදී');
+            }
+
             return redirect()->route('submissions.show', $submission)
                 ->with('success', 'ඉදිරිපත් කිරීම සාර්ථකව යාවත්කාලීන කරන ලදී');
         });

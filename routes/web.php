@@ -21,6 +21,7 @@ Route::get('api/divisions', [\App\Http\Controllers\SubmissionController::class, 
 Route::get('submissions/lookup', [\App\Http\Controllers\SubmissionController::class, 'lookup'])->name('submissions.lookup');
 Route::post('submissions/lookup', [\App\Http\Controllers\SubmissionController::class, 'lookupFind'])->name('submissions.lookup.find');
 Route::get('submissions/{submission}/public-edit', [\App\Http\Controllers\SubmissionController::class, 'publicEdit'])->name('submissions.public-edit');
+Route::put('submissions/{submission}/public-edit', [\App\Http\Controllers\SubmissionController::class, 'update'])->name('submissions.public-update');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
