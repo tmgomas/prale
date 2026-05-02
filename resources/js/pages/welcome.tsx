@@ -64,11 +64,6 @@ export default function Welcome() {
 
                     </div>
 
-                    <div className="mt-8 text-center">
-                        <Link href="/login" className="text-sm font-medium text-gray-500 hover:text-gray-900">
-                            කාර්යාලීය භාවිතය සඳහා පමණයි (Admin Login)
-                        </Link>
-                    </div>
                 </div>
             </div>
         </>
